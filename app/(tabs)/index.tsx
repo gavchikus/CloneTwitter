@@ -1,10 +1,42 @@
-import { View, Text } from "react-native";
-import { COLORS } from "../../constants/theme";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useAuth } from "@clerk/clerk-expo";
 
-export default function FeedScreen() {
+export default function HomeScreen() {
+  const { signOut } = useAuth();
+
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ color: COLORS.white, fontSize: 20 }}>Feed Screen (Home)</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Twitter Clone Feed</Text>
+      <TouchableOpacity 
+        style={styles.signOutButton} 
+        onPress={() => signOut()}
+      >
+        <Text style={styles.signOutText}>Sign out</Text>
+      </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#000",
+  },
+  title: {
+    color: "#fff",
+    fontSize: 24,
+    marginBottom: 20,
+  },
+  signOutButton: {
+    backgroundColor: "#1DA1F2",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  signOutText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+});

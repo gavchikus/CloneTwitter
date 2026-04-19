@@ -1,48 +1,44 @@
-import { query, mutation } from "./_generated/server";
+import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-const MAX_POST_LENGTH = 280;
+export const generateUploadUrl = mutation(async (ctx) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Unauthorized");
 
-export const getFeed = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db
-      .query("posts")
-      .withIndex("by_createdAt")
-      .order("desc")
-      .take(50);
-  },
+  return await ctx.storage.generateUploadUrl();
 });
 
 export const createPost = mutation({
   args: {
-    text: v.string(),
-    imageUrl: v.optional(v.string()),
+    caption: v.optional(v.string()),
+    storageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
 
-    if (!identity) {
-      throw new Error("No auth");
-    }
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!currentUser) throw new Error("User not found");
 
-    const text = args.text.trim();
+    const imageUrl = await ctx.storage.getUrl(args.storageId);
+    if (!imageUrl) throw new Error("Image URL not found");
 
-    if (!text) {
-      throw new Error("text is required");
-    }
-
-    if (text.length > MAX_POST_LENGTH) {
-      throw new Error(`must be ${MAX_POST_LENGTH} characters or less`);
-    }
-
-    return await ctx.db.insert("posts", {
-      authorId: identity.subject,
-      authorName: identity.name ?? identity.email ?? "Unknown user",
-      authorImageUrl: identity.pictureUrl,
-      text,
-      imageUrl: args.imageUrl,
-      createdAt: Date.now(),
+    const postId = await ctx.db.insert("posts", {
+      userId: currentUser._id,
+      imageUrl,
+      storageId: args.storageId,
+      caption: args.caption,
+      likes: 0,
+      comments: 0,
     });
+
+    await ctx.db.patch(currentUser._id, {
+      posts: currentUser.posts + 1,
+    });
+
+    return postId;
   },
 });

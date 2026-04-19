@@ -8,11 +8,14 @@ export default defineSchema({
     email: v.string(),
     bio: v.optional(v.string()),
     image: v.string(),
+    clerkId: v.string(),
     followers: v.number(),
     following: v.number(),
     posts: v.number(),
-    clerkId: v.string(),
-  }).index("by_clerk_id", ["clerkId"]),
+  })
+    .index("by_clerk_id", ["clerkId"])
+    .index("by_username", ["username"])
+    .index("by_email", ["email"]),
 
   posts: defineTable({
     userId: v.id("users"),

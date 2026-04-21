@@ -1,6 +1,13 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { query } from "./_generated/server";
 
+export const getPosts = query({
+  args: {},
+  handler: async (ctx) => {
+    return [{ _id: "1", text: "Test post" }]; // Временные данные
+  },
+});
 export const generateUploadUrl = mutation(async (ctx) => {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Unauthorized");

@@ -1,11 +1,10 @@
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { query } from "./_generated/server";
 
 export const getPosts = query({
   args: {},
   handler: async (ctx) => {
-    return [{ _id: "1", text: "Test post" }]; // Временные данные
+    return [{ _id: "1", text: "Test post" }];
   },
 });
 export const generateUploadUrl = mutation(async (ctx) => {
@@ -27,7 +26,7 @@ export const createPost = mutation({
     if (identity) {
       const user = await ctx.db
         .query("users")
-        .withIndex("by_clerk_id", (q) => q.eq("userId", identity.subject))
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
         .first();
       if (user) currentUserId = user._id;
     }

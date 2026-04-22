@@ -1,0 +1,1 @@
+export const STORIES = [{ id: "1" }, { id: "2" }];

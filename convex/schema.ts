@@ -46,7 +46,11 @@ export default defineSchema({
   notifications: defineTable({
     receiverId: v.id("users"),
     senderId: v.id("users"),
-    type: v.string(),
+    type: v.union(v.literal("like"), v.literal("comment"), v.literal("follow")),
     postId: v.optional(v.id("posts")),
-  }).index("by_receiver", ["receiverId"]),
+    commentId: v.optional(v.id("comments")),
+    content: v.optional(v.string()),
+})
+    .index("by_receiver", ["receiverId"])
+    .index("by_post", ["postId"]),
 });

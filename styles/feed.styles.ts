@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { COLORS } from "@/constants/theme";
+import { COLORS } from "../constants/theme";
 
 export const styles = StyleSheet.create({
   container: {
@@ -10,7 +10,8 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.surfaceLight,
   },
@@ -21,85 +22,89 @@ export const styles = StyleSheet.create({
   },
   logoutText: {
     color: COLORS.primary,
-    fontWeight: "600",
+    fontSize: 16,
   },
   storiesContainer: {
-    paddingVertical: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.surfaceLight,
   },
   storyWrapper: {
     alignItems: "center",
-    marginHorizontal: 8,
+    marginRight: 15,
   },
   storyRing: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     borderWidth: 2,
+    borderColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
-  },
-  storyRingActive: {
-    borderColor: COLORS.primary,
-  },
-  storyRingInactive: {
-    borderColor: COLORS.surfaceLight,
+    marginBottom: 4,
   },
   storyAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
   storyUsername: {
-    marginTop: 4,
-    fontSize: 12,
     color: COLORS.white,
+    fontSize: 12,
   },
-  post: {
+  postContainer: {
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.surfaceLight,
-    paddingVertical: 12,
   },
   postHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    marginBottom: 8,
-  },
-  postAuthorInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    marginBottom: 10,
   },
   postAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    marginRight: 10,
+  },
+  postHeaderInfo: {
+    flex: 1,
   },
   postUsername: {
+    color: COLORS.white,
     fontWeight: "bold",
-    color: COLORS.white,
+    fontSize: 16,
   },
-  postContent: {
-    paddingHorizontal: 16,
-    marginBottom: 8,
+  postTime: {
+    color: COLORS.grey,
+    fontSize: 14,
+  },
+  postCaption: {
     color: COLORS.white,
+    fontSize: 15,
+    marginBottom: 10,
   },
   postImage: {
     width: "100%",
-    aspectRatio: 1,
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 10,
   },
-  postActions: {
+  postFooter: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    paddingHorizontal: 16,
-    marginTop: 12,
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: "center",
     alignItems: "center",
+    marginTop: 5,
+  },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 20,
+  },
+  actionText: {
+    color: COLORS.grey,
+    marginLeft: 5,
+    fontSize: 14,
   },
 });

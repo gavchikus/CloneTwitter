@@ -1,13 +1,11 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "@clerk/clerk-expo";
 import { styles } from "../../styles/feed.styles";
-import { STORIES } from "../../constants/mock-data";
-import { Story } from "../../components/Story";
 import { Post } from "../../components/Post";
 import { Loader } from "../../components/Loader";
-
+import { StoriesSection } from "../../components/StoriesSection";
 export default function HomeScreen() {
   const posts = useQuery(api.posts.getPosts);
   const { signOut } = useAuth();
@@ -25,23 +23,14 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.storiesContainer}
-        >
-          {STORIES.map((story: any) => (
-            <Story key={story.id} story={story} />
-          ))}
-        </ScrollView>
-
-        <View>
-          {posts.map((post: any) => (
-            <Post key={post._id} post={post} />
-          ))}
-        </View>
-      </ScrollView>
+      <FlatList
+        data={posts}
+        keyExtractor={(item) => item._id.toString()}
+        renderItem={({ item }) => <Post post={item} />}
+        ListHeaderComponent={<StoriesSection />}
+        contentContainerStyle={{ paddingBottom: 60 }}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 }

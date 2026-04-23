@@ -1,69 +1,58 @@
-import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+import { getAuthenticatedUser } from "./users";
+
+export const toggleLike = mutation({
+  args: { postId: v.id("posts") },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Unauthorized");
+
+    const post = await ctx.db.get(args.postId);
+    if (!post) throw new Error("Post not found");
+
+    const existingLike = await ctx.db
+      .query("likes")
+      .withIndex("by_user_post", (q) =>
+        q.eq("userId", user._id).eq("postId", args.postId)
+      )
+      .unique();
+
+    if (existingLike) {
+      await ctx.db.delete(existingLike._id);
+      await ctx.db.patch(args.postId, {
+        likesCount: Math.max(0, (post.likesCount || 0) - 1),
+      });
+      return false;
+    } else {
+      await ctx.db.insert("likes", {
+        userId: user._id,
+        postId: args.postId,
+      });
+      await ctx.db.patch(args.postId, {
+        likesCount: (post.likesCount || 0) + 1,
+      });
+
+      if (post.userId !== user._id) {
+        await ctx.db.insert("notifications", {
+          receiverId: post.userId,
+          senderId: user._id,
+          type: "like",
+          postId: args.postId,
+        });
+      }
+      return true;
+    }
+  },
+});
 
 export const getPosts = query({
-  args: {},
   handler: async (ctx) => {
-    return [{ _id: "1", text: "Test post" }];
-  },
-});
-export const generateUploadUrl = mutation(async (ctx) => {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Unauthorized");
-
-  return await ctx.storage.generateUploadUrl();
-});
-
-export const createPost = mutation({
-  args: {
-    caption: v.optional(v.string()),
-    storageId: v.id("_storage"),
-  },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    let currentUserId = null;
-
-    if (identity) {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-        .first();
-      if (user) currentUserId = user._id;
-    }
-
     const posts = await ctx.db.query("posts").order("desc").collect();
-
     return Promise.all(
       posts.map(async (post) => {
         const author = await ctx.db.get(post.userId);
-
-        let isLiked = false;
-        let isBookmarked = false;
-
-        if (currentUserId) {
-          const like = await ctx.db
-            .query("likes")
-            .withIndex("by_user_and_post", (q) =>
-              q.eq("userId", currentUserId!).eq("postId", post._id)
-            )
-            .first();
-          isLiked = !!like;
-
-          const bookmark = await ctx.db
-            .query("bookmarks")
-            .withIndex("by_user_and_post", (q) =>
-              q.eq("userId", currentUserId!).eq("postId", post._id)
-            )
-            .first();
-          isBookmarked = !!bookmark;
-        }
-
-        return {
-          ...post,
-          author,
-          isLiked,
-          isBookmarked,
-        };
+        return { ...post, author };
       })
     );
   },

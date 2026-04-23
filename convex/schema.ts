@@ -7,8 +7,8 @@ export default defineSchema({
     email: v.string(),
     username: v.string(),
     fullname: v.string(),
-    bio: v.optional(v.string()),
-    image: v.optional(v.string()),
+    image: v.string(),
+    bio: v.string(),
     followers: v.number(),
     following: v.number(),
     posts: v.number(),
@@ -19,15 +19,18 @@ export default defineSchema({
     content: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     storageId: v.optional(v.id("_storage")),
+    likesCount: v.number(),
   }).index("by_user", ["userId"]),
 
   likes: defineTable({
     userId: v.id("users"),
     postId: v.id("posts"),
-  }).index("by_user_and_post", ["userId", "postId"]),
+  }).index("by_user_post", ["userId", "postId"]),
 
-  bookmarks: defineTable({
-    userId: v.id("users"),
-    postId: v.id("posts"),
-  }).index("by_user_and_post", ["userId", "postId"]),
+  notifications: defineTable({
+    receiverId: v.id("users"),
+    senderId: v.id("users"),
+    type: v.string(),
+    postId: v.optional(v.id("posts")),
+  }).index("by_receiver", ["receiverId"]),
 });

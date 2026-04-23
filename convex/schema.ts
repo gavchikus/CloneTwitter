@@ -20,12 +20,24 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     storageId: v.optional(v.id("_storage")),
     likesCount: v.number(),
+    commentsCount: v.number(),
   }).index("by_user", ["userId"]),
 
   likes: defineTable({
     userId: v.id("users"),
     postId: v.id("posts"),
-  }).index("by_user_post", ["userId", "postId"]),
+  }).index("by_user_post", ["userId", "postId"]).index("by_post", ["postId"]),
+
+  comments: defineTable({
+    userId: v.id("users"),
+    postId: v.id("posts"),
+    content: v.string(),
+  }).index("by_post", ["postId"]),
+
+  bookmarks: defineTable({
+    userId: v.id("users"),
+    postId: v.id("posts"),
+  }).index("by_user", ["userId"]).index("by_post", ["postId"]).index("by_user_post", ["userId", "postId"]),
 
   notifications: defineTable({
     receiverId: v.id("users"),

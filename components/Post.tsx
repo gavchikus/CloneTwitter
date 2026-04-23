@@ -102,7 +102,7 @@ export const Post = ({ post }: any) => {
       </View>
 
       <CommentsModal 
-        isVisible={showComments} 
+        isOpen={showComments} 
         onClose={() => setShowComments(false)} 
         postId={post._id} 
       />

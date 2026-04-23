@@ -35,7 +35,8 @@ export const getBookmarkedPosts = query({
 
     const bookmarks = await ctx.db
       .query("bookmarks")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .withIndex("by_user_post", (q) => q.eq("userId", user._id))
+      .order("desc")
       .collect();
 
     const posts = await Promise.all(

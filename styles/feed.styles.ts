@@ -44,6 +44,18 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 4,
   },
+  storyRingActive: {
+    borderColor: COLORS.primary,
+  },
+  storyRingInactive: {
+    borderColor: COLORS.surfaceLight,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.background,
+  },
   storyAvatar: {
     width: 56,
     height: 56,

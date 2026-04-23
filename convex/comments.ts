@@ -27,6 +27,8 @@ export const addComment = mutation({
         senderId: user._id,
         type: "comment",
         postId: args.postId,
+        content: args.content,
+        read: false,
       });
     }
   },

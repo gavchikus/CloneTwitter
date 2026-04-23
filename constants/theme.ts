@@ -6,6 +6,8 @@ export const COLORS = {
     surfaceLight: "#2F3336",
     white: "#E7E9EA",
     grey: "#71767B",
+    black: "#000000",
+    red: "#F91880",
 } as const;
 
 export const THEME = {

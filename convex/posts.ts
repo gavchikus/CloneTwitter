@@ -2,6 +2,46 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthenticatedUser } from "./users";
 
+export const generateUploadUrl = mutation({
+  handler: async (ctx) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Unauthorized");
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const createPost = mutation({
+  args: {
+    content: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
+  },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (!user) throw new Error("Unauthorized");
+
+    let imageUrl: string | undefined;
+    if (args.storageId) {
+      const url = await ctx.storage.getUrl(args.storageId);
+      imageUrl = url ?? undefined;
+    }
+
+    const postId = await ctx.db.insert("posts", {
+      userId: user._id,
+      content: args.content,
+      imageUrl,
+      storageId: args.storageId,
+      likesCount: 0,
+      commentsCount: 0,
+    });
+
+    await ctx.db.patch(user._id, {
+      postsCount: (user.postsCount || 0) + 1,
+    });
+
+    return postId;
+  },
+});
+
 export const toggleLike = mutation({
   args: { postId: v.id("posts") },
   handler: async (ctx, args) => {
@@ -39,6 +79,7 @@ export const toggleLike = mutation({
           senderId: user._id,
           type: "like",
           postId: args.postId,
+          read: false,
         });
       }
       return true;
@@ -48,11 +89,34 @@ export const toggleLike = mutation({
 
 export const getPosts = query({
   handler: async (ctx) => {
+    const user = await getAuthenticatedUser(ctx);
     const posts = await ctx.db.query("posts").order("desc").collect();
+
     return Promise.all(
       posts.map(async (post) => {
         const author = await ctx.db.get(post.userId);
-        return { ...post, author };
+
+        let isLiked = false;
+        let isBookmarked = false;
+        if (user) {
+          const like = await ctx.db
+            .query("likes")
+            .withIndex("by_user_post", (q) =>
+              q.eq("userId", user._id).eq("postId", post._id)
+            )
+            .unique();
+          isLiked = !!like;
+
+          const bookmark = await ctx.db
+            .query("bookmarks")
+            .withIndex("by_user_post", (q) =>
+              q.eq("userId", user._id).eq("postId", post._id)
+            )
+            .unique();
+          isBookmarked = !!bookmark;
+        }
+
+        return { ...post, author, isLiked, isBookmarked };
       })
     );
   },
@@ -91,7 +155,9 @@ export const deletePost = mutation({
     }
 
     await ctx.db.delete(args.postId);
-    await ctx.db.patch(user._id, { posts: Math.max(0, user.posts - 1) });
+    await ctx.db.patch(user._id, {
+      postsCount: Math.max(0, (user.postsCount || 0) - 1),
+    });
   },
 });
 

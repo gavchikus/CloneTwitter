@@ -8,11 +8,21 @@ const SIZE = width / 3;
 
 export default function BookmarksScreen() {
   const { isAuthenticated } = useConvexAuth();
-  const bookmarks = useQuery(api.bookmarks.getBookmarks, isAuthenticated ? {} : "skip");
+  const bookmarks = useQuery(
+    api.bookmarks.getBookmarkedPosts,
+    isAuthenticated ? {} : "skip"
+  );
 
   if (!bookmarks || bookmarks.length === 0) {
     return (
-      <View style={{ flex: 1, backgroundColor: THEME.colors.background, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: THEME.colors.background,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Text style={{ color: THEME.colors.white }}>No bookmarks yet</Text>
       </View>
     );
@@ -22,11 +32,16 @@ export default function BookmarksScreen() {
     <FlatList
       data={bookmarks}
       numColumns={3}
-      keyExtractor={(item) => item._id}
-      renderItem={({ item }) => (
-        <Image 
-          source={{ uri: item.post?.imageUrl }} 
-          style={{ width: SIZE, height: SIZE, borderWidth: 0.5, borderColor: THEME.colors.background }} 
+      keyExtractor={(item: any) => item._id}
+      renderItem={({ item }: any) => (
+        <Image
+          source={{ uri: item.imageUrl }}
+          style={{
+            width: SIZE,
+            height: SIZE,
+            borderWidth: 0.5,
+            borderColor: THEME.colors.background,
+          }}
         />
       )}
       style={{ backgroundColor: THEME.colors.background }}

@@ -2,16 +2,13 @@ import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import RootLayout from "./(tabs)/_layout";
+import { Stack } from "expo-router";
 import ClerkAndConvexProvider from "../providers/ClerkAndConvexProvider";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function Layout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-    JetBrainsMono: require("../assets/fonts/JetBrainsMono-Medium.ttf"),
-  });
+  const [loaded, error] = useFonts({});
 
   useEffect(() => {
     if (loaded || error) {
@@ -26,7 +23,11 @@ export default function Layout() {
   return (
     <ClerkAndConvexProvider>
       <SafeAreaProvider>
-        <RootLayout />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="user" options={{ headerShown: false }} />
+        </Stack>
       </SafeAreaProvider>
     </ClerkAndConvexProvider>
   );

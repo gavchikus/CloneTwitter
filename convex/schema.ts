@@ -8,11 +8,11 @@ export default defineSchema({
     username: v.string(),
     fullname: v.string(),
     image: v.string(),
-    bio: v.string(),
-    followers: v.number(),
-    following: v.number(),
-    posts: v.number(),
-  }).index("by_clerk_id", ["clerkId"]),
+    bio: v.optional(v.string()), 
+    followersCount: v.optional(v.number()), 
+    followingCount: v.optional(v.number()),
+    postsCount: v.optional(v.number()),
+  }).index("by_clerkId", ["clerkId"]), 
 
   posts: defineTable({
     userId: v.id("users"),
@@ -43,6 +43,11 @@ export default defineSchema({
     content: v.string(),
   }).index("by_post", ["postId"]),
 
+  follows: defineTable({
+    followerId: v.id("users"),
+    followingId: v.id("users"),
+  }).index("by_both", ["followerId", "followingId"]), 
+
   notifications: defineTable({
     receiverId: v.id("users"),
     senderId: v.id("users"),
@@ -50,7 +55,8 @@ export default defineSchema({
     postId: v.optional(v.id("posts")),
     commentId: v.optional(v.id("comments")),
     content: v.optional(v.string()),
-})
+    read: v.boolean(),
+  })
     .index("by_receiver", ["receiverId"])
     .index("by_post", ["postId"]),
 });

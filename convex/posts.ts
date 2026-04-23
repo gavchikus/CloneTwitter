@@ -94,3 +94,14 @@ export const deletePost = mutation({
     await ctx.db.patch(user._id, { posts: Math.max(0, user.posts - 1) });
   },
 });
+
+export const getPostsByUser = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("posts")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .collect();
+  },
+});

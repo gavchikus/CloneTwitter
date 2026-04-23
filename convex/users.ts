@@ -87,3 +87,17 @@ export const syncUser = mutation({
     });
   },
 });
+
+export const updateProfile = mutation({
+  args: {
+    userId: v.id("users"),
+    fullname: v.string(),
+    bio: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, {
+      fullname: args.fullname,
+      bio: args.bio,
+    });
+  },
+});

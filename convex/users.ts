@@ -52,3 +52,13 @@ export const toggleFollow = mutation({
     }
   },
 });
+
+export const getAuthenticatedUser = async (ctx: any) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+
+  return await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q: any) => q.eq("clerkId", identity.subject))
+    .unique();
+};

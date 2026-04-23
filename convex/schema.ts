@@ -20,6 +20,7 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     storageId: v.optional(v.id("_storage")),
     likesCount: v.number(),
+    commentsCount: v.number(),
   }).index("by_user", ["userId"]),
 
   likes: defineTable({

@@ -1,42 +1,47 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { useAuth } from "@clerk/clerk-expo";
+import { styles } from "../../styles/feed.styles";
+import { STORIES } from "../../constants/mock-data";
+import { Story } from "../../components/Story";
+import { Post } from "../../components/Post";
+import { Loader } from "../../components/Loader";
 
 export default function HomeScreen() {
+  const posts = useQuery(api.posts.getPosts);
   const { signOut } = useAuth();
+
+  if (posts === undefined) {
+    return <Loader />;
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Twitter Clone Feed</Text>
-      <TouchableOpacity 
-        style={styles.signOutButton} 
-        onPress={() => signOut()}
-      >
-        <Text style={styles.signOutText}>Sign out</Text>
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>X Clone</Text>
+        <TouchableOpacity onPress={() => signOut()}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.storiesContainer}
+        >
+          {STORIES.map((story: any) => (
+            <Story key={story.id} story={story} />
+          ))}
+        </ScrollView>
+
+        <View>
+          {posts.map((post: any) => (
+            <Post key={post._id} post={post} />
+          ))}
+        </View>
+      </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#000",
-  },
-  title: {
-    color: "#fff",
-    fontSize: 24,
-    marginBottom: 20,
-  },
-  signOutButton: {
-    backgroundColor: "#1DA1F2",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  signOutText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-});

@@ -1,103 +1,54 @@
 import { v } from "convex/values";
-import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
-export const getAuthenticatedUser = async (ctx: QueryCtx | MutationCtx) => {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) return null;
-  return await ctx.db
-    .query("users")
-    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-    .unique();
-};
-
-export const getUserByClerkId = query({
-  args: { clerkId: v.string() },
+export const getUserProfile = query({
+  args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .unique();
+    const user = await ctx.db.get(args.userId);
+    return user;
   },
 });
 
-export const createUser = mutation({
-  args: {
-    clerkId: v.string(),
-    email: v.string(),
-    username: v.string(),
-    fullname: v.string(),
-    image: v.string(),
-    bio: v.optional(v.string()),
-  },
+export const isFollowing = query({
+  args: { followingId: v.id("users") },
   handler: async (ctx, args) => {
-    const existingUser = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return false;
+    const currentUser = await ctx.db.query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject)).unique();
+    if (!currentUser) return false;
+
+    const follow = await ctx.db.query("follows")
+      .withIndex("by_both", (q) => q.eq("followerId", currentUser._id).eq("followingId", args.followingId))
       .unique();
-
-    if (existingUser) return existingUser._id;
-
-    return await ctx.db.insert("users", {
-      clerkId: args.clerkId,
-      email: args.email,
-      username: args.username,
-      fullname: args.fullname,
-      image: args.image,
-      bio: args.bio || "",
-      followers: 0,
-      following: 0,
-      posts: 0,
-    });
+    return !!follow;
   },
 });
 
-export const syncUser = mutation({
-  args: {
-    clerkId: v.string(),
-    email: v.string(),
-    username: v.string(),
-    fullname: v.string(),
-    image: v.string(),
-  },
+export const toggleFollow = mutation({
+  args: { followingId: v.id("users") },
   handler: async (ctx, args) => {
-    const existingUser = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const currentUser = await ctx.db.query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject)).unique();
+    if (!currentUser || currentUser._id === args.followingId) return;
+
+    const existing = await ctx.db.query("follows")
+      .withIndex("by_both", (q) => q.eq("followerId", currentUser._id).eq("followingId", args.followingId))
       .unique();
 
-    if (existingUser) {
-      await ctx.db.patch(existingUser._id, {
-        username: args.username,
-        fullname: args.fullname,
-        image: args.image,
-      });
-      return existingUser._id;
+    if (existing) {
+      await ctx.db.delete(existing._id);
+      await ctx.db.patch(currentUser._id, { followingCount: (currentUser.followingCount || 1) - 1 });
+      const target = await ctx.db.get(args.followingId);
+      await ctx.db.patch(args.followingId, { followersCount: (target.followersCount || 1) - 1 });
+    } else {
+      await ctx.db.insert("follows", { followerId: currentUser._id, followingId: args.followingId });
+      await ctx.db.patch(currentUser._id, { followingCount: (currentUser.followingCount || 0) + 1 });
+      const target = await ctx.db.get(args.followingId);
+      await ctx.db.patch(args.followingId, { followersCount: (target.followersCount || 0) + 1 });
+      await ctx.db.insert("notifications", { receiverId: args.followingId, senderId: currentUser._id, type: "follow", read: false });
     }
-
-    return await ctx.db.insert("users", {
-      clerkId: args.clerkId,
-      email: args.email,
-      username: args.username,
-      fullname: args.fullname,
-      image: args.image,
-      bio: "",
-      followers: 0,
-      following: 0,
-      posts: 0,
-    });
-  },
-});
-
-export const updateProfile = mutation({
-  args: {
-    userId: v.id("users"),
-    fullname: v.string(),
-    bio: v.string(),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.userId, {
-      fullname: args.fullname,
-      bio: args.bio,
-    });
   },
 });
